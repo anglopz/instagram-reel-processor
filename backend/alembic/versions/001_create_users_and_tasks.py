@@ -24,7 +24,7 @@ def upgrade() -> None:
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("email", sa.String(255), unique=True, nullable=False),
         sa.Column("hashed_password", sa.String(255), nullable=False),
-        sa.Column("created_at", sa.DateTime, server_default=sa.func.now()),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
 
     op.create_table(
@@ -43,10 +43,10 @@ def upgrade() -> None:
         sa.Column("language", sa.String(10), nullable=True),
         sa.Column("topics", postgresql.JSONB, nullable=True),
         sa.Column("error_message", sa.Text, nullable=True),
-        sa.Column("created_at", sa.DateTime, server_default=sa.func.now()),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column(
             "updated_at",
-            sa.DateTime,
+            sa.DateTime(timezone=True),
             server_default=sa.func.now(),
             onupdate=sa.func.now(),
         ),
