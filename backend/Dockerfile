@@ -16,6 +16,10 @@ COPY src/ src/
 COPY alembic/ alembic/
 COPY alembic.ini .
 
+# Run as non-root user
+RUN useradd --create-home appuser
+USER appuser
+
 EXPOSE 8000
 
 # Default command — overridden by docker-compose for worker
