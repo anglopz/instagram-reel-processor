@@ -28,6 +28,11 @@ class TaskRepository(ABC):
     ) -> Task | None: ...
 
     @abstractmethod
+    async def set_celery_task_id(
+        self, task_id: UUID, celery_task_id: str
+    ) -> None: ...
+
+    @abstractmethod
     async def update_results(
         self,
         task_id: UUID,

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from src.application.ports.task_repository import TaskRepository
@@ -69,6 +69,12 @@ class PostgresTaskRepository(TaskRepository):
             result = await session.execute(stmt)
             return [self._to_entity(m) for m in result.scalars().all()]
 
+    _TERMINAL_STATES = {
+        TaskStatus.CANCELLED.value,
+        TaskStatus.COMPLETED.value,
+        TaskStatus.FAILED.value,
+    }
+
     async def update_status(
         self,
         task_id: UUID,
@@ -76,25 +82,40 @@ class PostgresTaskRepository(TaskRepository):
         error_message: str | None = None,
     ) -> Task | None:
         async with self._session_factory() as session:
-            stmt = select(TaskModel).where(TaskModel.id == task_id)
+            values: dict = {
+                "status": status.value,
+                "updated_at": datetime.now(UTC),
+            }
+            if error_message is not None:
+                values["error_message"] = error_message
+
+            stmt = (
+                update(TaskModel)
+                .where(
+                    TaskModel.id == task_id,
+                    TaskModel.status.notin_(self._TERMINAL_STATES),
+                )
+                .values(**values)
+                .returning(TaskModel)
+            )
             result = await session.execute(stmt)
             model = result.scalar_one_or_none()
             if model is None:
                 return None
-            terminal_states = {
-                TaskStatus.CANCELLED.value,
-                TaskStatus.COMPLETED.value,
-                TaskStatus.FAILED.value,
-            }
-            if model.status in terminal_states:
-                return None
-            model.status = status.value
-            if error_message is not None:
-                model.error_message = error_message
-            model.updated_at = datetime.now(UTC)
             await session.commit()
             await session.refresh(model)
             return self._to_entity(model)
+
+    async def set_celery_task_id(
+        self, task_id: UUID, celery_task_id: str
+    ) -> None:
+        async with self._session_factory() as session:
+            stmt = select(TaskModel).where(TaskModel.id == task_id)
+            result = await session.execute(stmt)
+            model = result.scalar_one_or_none()
+            if model is not None:
+                model.celery_task_id = celery_task_id
+                await session.commit()
 
     async def update_results(
         self,
