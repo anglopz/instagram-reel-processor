@@ -17,7 +17,9 @@ COPY alembic/ alembic/
 COPY alembic.ini .
 
 # Run as non-root user
-RUN useradd --create-home appuser
+RUN useradd --create-home appuser \
+    && mkdir -p /home/appuser/.cache \
+    && chown -R appuser:appuser /home/appuser/.cache
 USER appuser
 
 EXPOSE 8000
