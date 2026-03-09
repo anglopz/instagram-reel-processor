@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -91,7 +91,7 @@ class PostgresTaskRepository(TaskRepository):
             model.status = status.value
             if error_message is not None:
                 model.error_message = error_message
-            model.updated_at = datetime.utcnow()
+            model.updated_at = datetime.now(UTC)
             await session.commit()
             await session.refresh(model)
             return self._to_entity(model)
@@ -112,7 +112,7 @@ class PostgresTaskRepository(TaskRepository):
             model.transcript = transcript
             model.language = language
             model.topics = topics
-            model.updated_at = datetime.utcnow()
+            model.updated_at = datetime.now(UTC)
             await session.commit()
             await session.refresh(model)
             return self._to_entity(model)
