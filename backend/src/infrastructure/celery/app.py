@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from celery import Celery
+from celery.signals import worker_init
 
 from src.infrastructure.config import get_settings
 
@@ -22,3 +23,11 @@ celery_app.conf.update(
     task_acks_late=True,
     worker_prefetch_multiplier=1,
 )
+
+
+@worker_init.connect
+def init_worker(**kwargs):
+    """Wire port implementations when Celery worker starts."""
+    from src.container import init_container
+
+    init_container()

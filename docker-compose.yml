@@ -66,11 +66,7 @@ services:
     depends_on:
       - api
     environment:
-      VITE_API_URL: http://api:8000
-    # NOTE: The frontend Vite dev server proxy in vite.config.js targets
-    # localhost:8000. In Docker, the proxy target needs to be http://api:8000
-    # for container networking. Update vite.config.js proxy target or use
-    # an env-based config to make it work inside Docker.
+      VITE_API_PROXY_TARGET: http://api:8000
 
 volumes:
   pgdata:
