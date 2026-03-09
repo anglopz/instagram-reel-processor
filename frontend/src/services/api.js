@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const baseURL = `${import.meta.env.VITE_API_URL || ""}/api/v1`;
+
 const api = axios.create({
-  baseURL: "/api/v1",
+  baseURL,
 });
 
 api.interceptors.request.use((config) => {
@@ -15,7 +17,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    if (status === 401 || status === 403) {
       localStorage.removeItem("token");
       window.location.href = "/login";
     }
