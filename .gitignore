@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Node
+node_modules/
+frontend/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Task artifacts
+/tmp/tasks/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Agent/conductor notes (not part of the application)
+conductor/
+docs/initiatives/
+docs/plan_instagram_reel_processor.md
+
+# Claude
+.claude/
