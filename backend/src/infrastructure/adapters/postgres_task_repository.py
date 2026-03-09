@@ -81,6 +81,13 @@ class PostgresTaskRepository(TaskRepository):
             model = result.scalar_one_or_none()
             if model is None:
                 return None
+            terminal_states = {
+                TaskStatus.CANCELLED.value,
+                TaskStatus.COMPLETED.value,
+                TaskStatus.FAILED.value,
+            }
+            if model.status in terminal_states:
+                return None
             model.status = status.value
             if error_message is not None:
                 model.error_message = error_message
