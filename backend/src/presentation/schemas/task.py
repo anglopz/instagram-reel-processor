@@ -9,7 +9,9 @@ from src.domain.enums.task_status import TaskStatus
 
 
 class CreateTaskRequest(BaseModel):
-    reel_url: str = Field(..., pattern=r"^https?://")
+    reel_url: str = Field(
+        ..., pattern=r"^https?://(www\.)?instagram\.com/(reel|p|reels)/"
+    )
 
 
 class TaskResponse(BaseModel):
