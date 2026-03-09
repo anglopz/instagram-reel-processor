@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from functools import lru_cache
+
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -9,6 +11,7 @@ from sqlalchemy.ext.asyncio import (
 from src.infrastructure.config import get_settings
 
 
+@lru_cache
 def create_session_factory() -> async_sessionmaker[AsyncSession]:
     settings = get_settings()
     engine = create_async_engine(settings.DATABASE_URL, echo=False)
