@@ -1,0 +1,76 @@
+services:
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-reel_processor}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-reel_processor}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://app:changeme@postgres:5432/reel_processor}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      WHISPER_MODEL: ${WHISPER_MODEL:-base}
+    command: >
+      bash -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000"
+
+  worker:
+    build: ./backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://app:changeme@postgres:5432/reel_processor}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      WHISPER_MODEL: ${WHISPER_MODEL:-base}
+    command: >
+      celery -A src.infrastructure.celery.app:celery_app worker --loglevel=info --concurrency=2
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    environment:
+      VITE_API_URL: http://api:8000
+    # NOTE: The frontend Vite dev server proxy in vite.config.js targets
+    # localhost:8000. In Docker, the proxy target needs to be http://api:8000
+    # for container networking. Update vite.config.js proxy target or use
+    # an env-based config to make it work inside Docker.
+
+volumes:
+  pgdata:
