@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
+from src.application.ports.task_repository import TaskRepository
 from src.application.use_cases.cancel_task import CancelTask
 from src.application.use_cases.create_task import CreateTask
 from src.application.use_cases.get_task_status import GetTaskStatus
@@ -24,11 +25,9 @@ from src.presentation.schemas.task import (
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
-_session_factory = create_session_factory()
 
-
-def _repo() -> PostgresTaskRepository:
-    return PostgresTaskRepository(_session_factory)
+def get_task_repository() -> TaskRepository:
+    return PostgresTaskRepository(create_session_factory())
 
 
 def _task_response(task: Task) -> TaskResponse:
@@ -47,10 +46,11 @@ def _task_response(task: Task) -> TaskResponse:
 @router.get("", response_model=TaskListResponse)
 async def list_tasks(
     user_id: UUID = Depends(get_current_user),
+    repo: TaskRepository = Depends(get_task_repository),
     limit: int = 20,
     offset: int = 0,
 ) -> TaskListResponse:
-    use_case = ListUserTasks(_repo())
+    use_case = ListUserTasks(repo)
     tasks = await use_case.execute(user_id, limit, offset)
     return TaskListResponse(tasks=[_task_response(t) for t in tasks])
 
@@ -59,16 +59,17 @@ async def list_tasks(
 async def create_task(
     body: CreateTaskRequest,
     user_id: UUID = Depends(get_current_user),
+    repo: TaskRepository = Depends(get_task_repository),
 ) -> TaskResponse:
-    repo = _repo()
     use_case = CreateTask(repo)
     task = await use_case.execute(str(body.reel_url), user_id)
 
-    # Dispatch processing pipeline asynchronously
+    # Dispatch processing pipeline and store chain ID for cancellation
     from src.application.services.pipeline_orchestrator import PipelineOrchestrator
 
     orchestrator = PipelineOrchestrator()
-    await orchestrator.orchestrate(task.id, task.reel_url)
+    chain_id = await orchestrator.orchestrate(task.id, task.reel_url)
+    await repo.set_celery_task_id(task.id, chain_id)
 
     return _task_response(task)
 
@@ -77,8 +78,9 @@ async def create_task(
 async def get_task(
     task_id: UUID,
     user_id: UUID = Depends(get_current_user),
+    repo: TaskRepository = Depends(get_task_repository),
 ) -> TaskResponse:
-    use_case = GetTaskStatus(_repo())
+    use_case = GetTaskStatus(repo)
     task = await use_case.execute(task_id, user_id)
     return _task_response(task)
 
@@ -87,12 +89,10 @@ async def get_task(
 async def get_transcript(
     task_id: UUID,
     user_id: UUID = Depends(get_current_user),
+    repo: TaskRepository = Depends(get_task_repository),
 ) -> TranscriptResponse:
-    repo = _repo()
-    # Get transcript text
     get_tx = GetTranscript(repo)
     transcript = await get_tx.execute(task_id, user_id)
-    # Get task for language + topics
     get_status = GetTaskStatus(repo)
     task = await get_status.execute(task_id, user_id)
     return TranscriptResponse(
@@ -106,7 +106,8 @@ async def get_transcript(
 async def cancel_task(
     task_id: UUID,
     user_id: UUID = Depends(get_current_user),
+    repo: TaskRepository = Depends(get_task_repository),
 ) -> TaskResponse:
-    use_case = CancelTask(_repo())
+    use_case = CancelTask(repo)
     task = await use_case.execute(task_id, user_id)
     return _task_response(task)
