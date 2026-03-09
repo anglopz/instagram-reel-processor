@@ -29,21 +29,21 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-surface-dark px-4">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-gray-900 text-center mb-8">
+        <h1 className="text-2xl font-bold text-zinc-50 text-center mb-8">
           Reel Processor
         </h1>
         <form
           onSubmit={handleSubmit}
-          className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+          className="bg-surface border border-zinc-800 p-8 rounded-lg"
         >
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg font-semibold text-zinc-50 mb-4">
             Create account
           </h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-400 mb-1.5">
                 Email
               </label>
               <input
@@ -51,11 +51,11 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 bg-surface-dark border border-zinc-800 text-zinc-50 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-400 mb-1.5">
                 Password
               </label>
               <input
@@ -64,21 +64,21 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 bg-surface-dark border border-zinc-800 text-zinc-50 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
               />
             </div>
           </div>
-          {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+          {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="mt-4 w-full py-2 px-4 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+            className="mt-4 w-full py-3 px-4 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-500 disabled:opacity-50 transition-all duration-150 cursor-pointer"
           >
             {loading ? "Creating account..." : "Register"}
           </button>
-          <p className="mt-4 text-sm text-center text-gray-600">
+          <p className="mt-4 text-sm text-center text-zinc-500">
             Already have an account?{" "}
-            <Link to="/login" className="text-blue-600 hover:underline">
+            <Link to="/login" className="text-blue-500 hover:text-blue-400">
               Log in
             </Link>
           </p>

@@ -11,10 +11,6 @@ function timeAgo(dateStr) {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-function truncateUrl(url, maxLen = 45) {
-  return url.length > maxLen ? url.slice(0, maxLen) + "..." : url;
-}
-
 export default function TaskCard({ task, onSelect, onRefresh }) {
   const canCancel = ["pending", "processing"].includes(task.status);
 
@@ -31,23 +27,32 @@ export default function TaskCard({ task, onSelect, onRefresh }) {
   return (
     <div
       onClick={() => onSelect(task)}
-      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+      className="bg-surface border border-zinc-800 rounded-lg p-5 hover:border-zinc-700 transition-colors cursor-pointer"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-gray-900 truncate">
-            {truncateUrl(task.reel_url)}
+          <div className="mb-2">
+            <StatusBadge status={task.status} />
+          </div>
+          <p className="text-sm font-mono text-zinc-400 truncate">
+            {task.reel_url}
           </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {timeAgo(task.created_at)}
-          </p>
+          <div className="flex items-center gap-4 mt-2">
+            <span className="text-xs text-zinc-600">
+              {timeAgo(task.created_at)}
+            </span>
+            {task.language && (
+              <span className="text-xs text-zinc-500">
+                Language: {task.language}
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <StatusBadge status={task.status} />
+        <div className="shrink-0">
           {canCancel && (
             <button
               onClick={handleCancel}
-              className="text-xs text-red-500 hover:text-red-700 cursor-pointer"
+              className="text-sm text-zinc-500 hover:text-red-400 transition-all duration-150 cursor-pointer"
             >
               Cancel
             </button>
@@ -55,7 +60,7 @@ export default function TaskCard({ task, onSelect, onRefresh }) {
         </div>
       </div>
       {task.status === "failed" && task.error_message && (
-        <p className="mt-2 text-xs text-red-600 truncate">
+        <p className="mt-3 text-xs font-mono text-red-400 bg-red-500/5 border border-red-500/10 rounded-md p-3 truncate">
           {task.error_message}
         </p>
       )}

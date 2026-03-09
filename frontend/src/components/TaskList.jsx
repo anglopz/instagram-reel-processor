@@ -39,8 +39,10 @@ export default function TaskList() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-zinc-800/50 animate-pulse rounded-lg h-24" />
+        ))}
       </div>
     );
   }
@@ -48,10 +50,10 @@ export default function TaskList() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">Your Tasks</h2>
+        <h2 className="text-xl font-semibold text-zinc-50">Your Tasks</h2>
         <button
           onClick={() => setShowAdd(true)}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer"
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-500 transition-all duration-150 cursor-pointer"
         >
           + New Task
         </button>
@@ -59,7 +61,7 @@ export default function TaskList() {
 
       {tasks.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">No tasks yet — submit your first reel URL</p>
+          <p className="text-zinc-600">No tasks yet. Add an Instagram Reel URL to get started.</p>
         </div>
       ) : (
         <div className="space-y-3">
