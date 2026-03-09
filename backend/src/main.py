@@ -8,7 +8,10 @@ from src.domain.exceptions import DomainException
 from src.presentation.api.v1.auth import router as auth_router
 from src.presentation.api.v1.health import router as health_router
 from src.presentation.api.v1.tasks import router as tasks_router
-from src.presentation.middleware.error_handler import domain_exception_handler
+from src.presentation.middleware.error_handler import (
+    domain_exception_handler,
+    unhandled_exception_handler,
+)
 
 
 def create_app() -> FastAPI:
@@ -30,6 +33,7 @@ def create_app() -> FastAPI:
 
     # Exception handlers
     app.add_exception_handler(DomainException, domain_exception_handler)
+    app.add_exception_handler(Exception, unhandled_exception_handler)
 
     # Routers
     app.include_router(auth_router, prefix="/api/v1")
