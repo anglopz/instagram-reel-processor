@@ -44,6 +44,7 @@ services:
 
   worker:
     build: ./backend
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
@@ -56,8 +57,10 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
       WHISPER_MODEL: ${WHISPER_MODEL:-base}
+    volumes:
+      - whisper_cache:/home/appuser/.cache
     command: >
-      celery -A src.infrastructure.celery.app:celery_app worker --loglevel=info --concurrency=2
+      celery -A src.infrastructure.celery.app:celery_app worker --loglevel=info --pool=prefork --concurrency=4
 
   frontend:
     build: ./frontend
@@ -70,3 +73,4 @@ services:
 
 volumes:
   pgdata:
+  whisper_cache:

@@ -30,4 +30,4 @@ def init_worker(**kwargs):
     """Wire port implementations when Celery worker starts."""
     from src.container import init_container
 
-    init_container()
+    init_container(worker=True)

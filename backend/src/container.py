@@ -8,16 +8,25 @@ from src.infrastructure.adapters.postgres_task_repository import (
 from src.infrastructure.adapters.whisper_transcriber import WhisperTranscriber
 from src.infrastructure.adapters.ytdlp_downloader import YtdlpDownloader
 from src.infrastructure.celery.tasks import register_ports
-from src.infrastructure.database.session import create_session_factory
+from src.infrastructure.database.session import (
+    create_session_factory,
+    create_worker_session_factory,
+)
 
 
-def init_container() -> None:
+def init_container(*, worker: bool = False) -> None:
     """Wire adapter implementations to port interfaces.
 
-    Must be called once at application startup so Celery tasks
-    can resolve their port dependencies via the registry.
+    Args:
+        worker: If True, use NullPool session factory for Celery workers.
+                Celery tasks call asyncio.run() per task, creating a new event
+                loop each time. asyncpg connections can't be reused across
+                event loops, so workers need NullPool (fresh connection per use).
     """
-    session_factory = create_session_factory()
+    if worker:
+        session_factory = create_worker_session_factory()
+    else:
+        session_factory = create_session_factory()
 
     register_ports(
         task_repository=PostgresTaskRepository(session_factory),
